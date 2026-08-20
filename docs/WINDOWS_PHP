@@ -1,0 +1,25 @@
+PHP on Windows
+==============
+PHP has no official winget package with a predictable install path, so
+windows_php.go handles it manually instead of going through the
+generic InstallCommand flow:
+
+  1. Downloads the official PHP zip for a pinned version/VC/arch combo
+     from downloads.php.net (tries the current-releases path, then the
+     archives path as a fallback).
+  2. Extracts it to C:\tools\php, guarding against zip-slip path
+     traversal on every entry.
+  3. Appends the install dir to the user's PATH via setx (best
+     effort if that fails, it prints the path so the user can add it
+     manually).
+
+installer.Install() checks for selectedOS == Windows && item.ID ==
+"php" before the generic path and routes to InstallPHPWindows()
+instead.
+
+If you ever bump the pinned version, update the three constants at the
+top of the file:
+
+  phpVersion    = "8.4.22"
+  phpVCVersion  = "vs17"
+  phpArch       = "x64"

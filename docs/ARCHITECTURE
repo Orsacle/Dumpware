@@ -1,0 +1,100 @@
+Architecture
+============
+
+Project Layout
+--------------
+dumpware/
+├── go.mod
+├── README / LICENSE / SECURITY / CODE_OF_CONDUCT
+├── docs/                      # you are here
+│
+├── i18n/
+│   ├── i18n.go               # loads + serves translations
+│   └── locales/*.json         # one file per language
+│
+└── src/
+    ├── main.go                 # ties everything together
+    ├── system/
+    │   ├── os.go                # OS enum + detection (runtime.GOOS)
+    │   └── packagemanager.go    # package manager enum + detection
+    ├── catalog/
+    │   ├── types.go             # Category, Item, InstallCommand
+    │   └── data.go               # the actual catalog content
+    ├── wizard/
+    │   └── wizard.go             # all terminal prompts
+    └── installer/
+        ├── installer.go          # runs the install commands
+        ├── util.go                # shared download/exec helpers
+        ├── windows_php.go         # special-cased PHP install on Windows
+        ├── linux_mullvad.go       # special-cased Mullvad on Apt/Dnf
+        └── linux_ventoy.go        # special-cased Ventoy on Linux
+
+
+Package Breakdown
+-----------------
+
+system
+------
+Two small enums with detection logic attached.
+
+- OS (MacOS, Linux, Windows, Unknown) DetectOS() reads runtime.GOOS.
+- PackageManager (Apt, Dnf, Pacman, Zypper, Apk, Xbps)
+  DetectPackageManagers() checks exec.LookPath for each candidate
+  binary and returns whichever ones actually exist on the machine.
+
+Nothing here touches the catalog or the wizard--it only answers
+"what am I running on".
+
+catalog
+-------
+Pure data, no logic beyond a lookup.
+
+- Item describes one installable thing: an ID, a display name, a
+  description key (for i18n), and one InstallCommand per platform
+  (a map keyed by PackageManager for Linux, since that varies).
+- Category groups items under a translated name (NameKey).
+- Item.CommandFor(os, pm) returns the right InstallCommand for the
+  current OS/PM combo, or ok = false if there isn't one.
+- catalog.All() in data.go is the single source of truth for every
+  category and item Dumpware knows about.
+
+wizard
+------
+Everything that talks to the terminal lives here. Nowhere else reads
+or writes stdin/stdout directly except this package and installer.go
+(which streams subprocess output).
+
+- SelectLanguage, SelectOS, SelectPackageManager, SelectItems,
+  Confirm — each one prints a prompt, reads a line, and parses it
+  (by index or by name, whichever makes sense).
+- Falls back to sane defaults whenever input is empty or invalid
+  (detected OS, first available package manager, etc).
+
+installer
+---------
+Takes the final selection and executes it.
+
+- Install() loops over selected items, resolves the right command via
+  Item.CommandFor, and runs it with stdout/stderr/stdin wired straight
+  to the terminal so the user sees native install output live.
+- On Windows it first tries winget source update (best effort, logs
+  a warning if it fails but doesn't abort).
+- Some items need more than a plain InstallCommand and are
+  special-cased in Install() before the generic CommandFor() path:
+  PHP on Windows (see WINDOWS_PHP), and Mullvad/Ventoy on Linux (see
+  LINUX_EXCEPTIONS).
+- util.go holds downloadFile() and runCmd(), small helpers shared by
+  the special-cased installers.
+
+i18n
+----
+A minimal embedded translation loader.
+
+- All locales/*.json files are embedded at compile time via
+  //go:embed.
+- T(key, args...) looks up key in the current language, falls back
+  to English if missing, and returns the raw key if even English
+  doesn't have it (so you always get *something* printed, never a
+  crash).
+- SetLanguage silently falls back to English if the requested
+  language isn't loaded.

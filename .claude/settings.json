@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit",
+      "Write",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git commit *)",
+            "command": "staged=$(git diff --cached --name-only); if [ -z \"$staged\" ] || [ \"$staged\" = \"src/catalog/data.go\" ]; then exit 0; fi; printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"git commit is restricted to src/catalog/data.go only (safety net) - unstage other files first.\"}}'"
+          }
+        ]
+      }
+    ]
+  }
+}

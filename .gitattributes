@@ -1,0 +1,4 @@
+.gitlab-ci.yml export-ignore
+.gitignore export-ignore
+.claude export-ignore
+/docs export-ignore

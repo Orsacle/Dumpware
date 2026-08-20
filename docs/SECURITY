@@ -1,0 +1,23 @@
+Security Policy
+===============
+If there are any vulnerabilities in the software
+that Dumpware installs onto your personal computer,
+please report it immediatly for yours and the
+other safety.
+
+Vulnerability Reporting
+=======================
+Please fill out the template when reporting any
+vulnerability in the software (git@jbreda.dev).
+
+************************************************************************
+*                                                                      *
+*  Vulnerability-Report Template                                       *
+*  =============================                                       *
+*                                                                      *
+*  Software: software name (e.g. Dumpware)                             *
+*  Version: contaminated version (e.g. 3.01.04)                        *
+*  Type: type of vulnerability (e.g. Trojan)                           *
+*  Weight: severity of vulnerability (e.g. immidiate)                  *
+*                                                                      *
+************************************************************************

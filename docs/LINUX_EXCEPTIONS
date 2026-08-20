@@ -1,0 +1,119 @@
+Linux Special Cases (Mullvad, Ventoy)
+=====================================
+Some tools have no install command that works through a plain
+InstallCommand on Linux, either because the package isn't in any
+distro's repo, or because it's only in a repo that has to be added
+first. These are special-cased in installer.Install() before the
+generic Item.CommandFor() path, the same way PHP is special-cased on
+Windows (see WINDOWS_PHP).
+
+
+Mullvad VPN (installer/linux_mullvad.go)
+----------------------------------------
+Mullvad has no package in the standard Debian/Ubuntu or Fedora repos -
+only through Mullvad's own self-hosted repo. It IS available in
+Arch's official "extra" repo though, so that case doesn't need any
+special handling.
+
+  Pacman:      uses the normal InstallCommand in catalog/data.go,
+               nothing special.
+  Apt:         InstallMullvadApt() downloads Mullvad's signing key to
+               /usr/share/keyrings/mullvad-keyring.asc, writes
+               /etc/apt/sources.list.d/mullvad.list using the
+               distro's VERSION_CODENAME (read from /etc/os-release)
+               and dpkg's architecture, then runs apt-get update +
+               apt-get install.
+  Dnf:         InstallMullvadDnf() adds Mullvad's .repo file via
+               "dnf config-manager addrepo --from-repofile=..."
+               (dnf5 / Fedora 41+), falling back to the older
+               "dnf config-manager --add-repo ..." syntax (dnf4 /
+               Fedora 40 and earlier) if that fails, then runs
+               dnf install.
+  Zypper/Apk:  not supported - Mullvad doesn't provide a repo for
+               openSUSE or Alpine, and there's no reasonable
+               community package to fall back to. CommandFor()
+               returns ok = false and the item is skipped normally.
+
+installer.Install() intercepts item.ID == "mullvad" only for Apt and
+Dnf; Pacman falls through to the generic path.
+
+
+Ventoy (installer/linux_ventoy.go)
+----------------------------------
+Ventoy has no package in any standard Linux distro repository at
+all - on Arch it's AUR-only ("ventoy-bin"), and Dumpware doesn't
+shell out to an AUR helper. Everywhere on Linux it's a GitHub release
+tarball only, so that's what InstallVentoyLinux() does:
+
+  1. Queries the GitHub API for the latest release
+     (api.github.com/repos/ventoy/Ventoy/releases/latest) and finds
+     the asset ending in "-linux.tar.gz".
+  2. Downloads it to a temp file.
+  3. Extracts it to /opt/ventoy, guarding against tar-slip path
+     traversal on every entry (same principle as windows_php.go's
+     zip-slip protection).
+  4. Prints the path to the extracted Ventoy2Disk.sh script, since
+     actually writing to a USB device needs a device path from the
+     user and shouldn't happen unattended.
+
+installer.Install() intercepts item.ID == "ventoy" for every Linux
+package manager, including UnknownPM - the GitHub-tarball install
+doesn't need a package manager at all.
+
+Ventoy also has no native macOS installer upstream (confirmed - not
+even a community Homebrew cask exists), so it stays Windows-only
+outside of Linux.
+
+
+Plain Omissions (no special-casing needed)
+-------------------------------------------
+Not every gap needs a linux_*.go file. When a distro simply has no
+package to install and there's no reasonable repo to add on the fly,
+the right fix is just leaving that PackageManager out of the Item's
+Linux map in catalog/data.go - CommandFor() returns ok = false and
+the wizard prints installer.noCommand and skips it, same as any
+zero-valued platform. These are documented here so the next person
+doesn't "fix" the gap by inventing a package name that doesn't exist.
+
+  Visual Studio Code (item "vscode"):    no Linux entry at all.
+                                          Microsoft only ships it via
+                                          its own apt/yum repo (or
+                                          Snap/Flatpak) - no distro's
+                                          default repos carry it.
+
+  Sublime Text (item "sublimetext"):     no Linux entry at all. Same
+                                          situation as VS Code - needs
+                                          Sublime's own apt/yum repo
+                                          everywhere, and it's
+                                          AUR-only on Arch
+                                          ("sublime-text-4").
+
+  Brave (item "brave"):                  no Linux entry at all. Needs
+                                          Brave's own apt/yum repo on
+                                          Debian/Ubuntu/Fedora, and is
+                                          AUR-only on Arch
+                                          ("brave-bin"). openSUSE has
+                                          no official package either.
+
+  Rust (item "rust"), Zypper only:       every other PM has a real
+                                          Rust/Cargo package, but
+                                          openSUSE's live in the OBS
+                                          devel:languages:rust
+                                          project, not Tumbleweed's
+                                          default repos - a plain
+                                          "zypper install rust cargo"
+                                          fails without adding that
+                                          repo first.
+
+None of these are AUR-solvable the way Ventoy or Sublime's Arch case
+might tempt you to think - Dumpware doesn't shell out to an AUR
+helper, per the Ventoy precedent above.
+
+
+Shared helpers (installer/util.go)
+----------------------------------
+downloadFile(url, destPath) and runCmd(name, args...) are small
+helpers factored out for reuse across windows_php.go,
+linux_mullvad.go and linux_ventoy.go, since all three do some
+combination of "download a file" and "run a command with
+stdout/stderr/stdin wired to the terminal".

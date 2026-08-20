@@ -1,0 +1,38 @@
+Adding a New Tool to the Catalog
+================================
+Everything lives in src/catalog/data.go. To add e.g. "Rust" to the
+Languages category:
+
+  1. Add translation keys to every file in i18n/locales/ (at least
+     en.json, ideally all of them.):
+
+       "item.rust.description": "Rust toolchain"
+
+  2. Add the item to the right Category.Items slice:
+
+       {
+           ID:             "rust",
+           Name:           "Rust",
+           DescriptionKey: "item.rust.description",
+           MacOS:          InstallCommand{Command: "brew", Args: []string{"install", "rust"}},
+           Windows:        InstallCommand{Command: "winget", Args: []string{"install", "-e", "--id", "Rustlang.Rustup"}},
+           Linux: map[system.PackageManager]InstallCommand{
+               system.Apt:    {Command: "apt-get", Args: []string{"install", "-y", "rustc", "cargo"}},
+               system.Dnf:    {Command: "dnf", Args: []string{"install", "-y", "rust", "cargo"}},
+               system.Pacman: {Command: "pacman", Args: []string{"-S", "--noconfirm", "rust"}},
+               system.Zypper: {Command: "zypper", Args: []string{"install", "-y", "rust", "cargo"}},
+               system.Apk:    {Command: "apk", Args: []string{"add", "rust", "cargo"}},
+           },
+       }
+
+  3. Leaving a platform's InstallCommand zero-valued (or a PM out of
+     the Linux map) is fine as CommandFor just returns ok = false
+     and the wizard prints installer.noCommand and skips it.
+
+
+Adding a Whole New Category
+---------------------------
+Add a new Category{NameKey: "category.whatever", Items: [...]} entry
+to the slice returned by catalog.All(), plus the matching
+category.whatever key in the locale files. The wizard iterates
+catalog.All() automatically, so nothing else needs to change.

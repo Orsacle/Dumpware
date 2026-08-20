@@ -1,0 +1,18 @@
+Adding a New Language
+=====================
+  1. Copy i18n/locales/en.json to i18n/locales/<code>.json (use
+     the right ISO code.) (en-pirate.json is an exception.)
+  2. Translate every value. Keys must match exactly, or T() will
+     silently fall back to English for that key.
+  3. That's all. Available() picks up every file in locales/
+     automatically at startup, no registration needed anywhere else.
+
+
+Fallback Behaviour
+------------------
+- T(key, args...) looks in the currently selected language first.
+- Missing key? Falls back to English.
+- Missing there too? Returns the raw key itself, so a typo never
+  crashes the wizard. Worst case you see a key name instead of text.
+- SetLanguage(lang) silently falls back to English if lang isn't
+  a loaded locale at all.
