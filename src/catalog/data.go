@@ -122,6 +122,20 @@ func All() []Category {
 					// via its own apt/yum repo, which Dumpware doesn't add automatically
 				},
 				{
+					ID:             "vim",
+					Name:           "Vim",
+					DescriptionKey: "item.vim.description",
+					MacOS:          InstallCommand{Command: "brew", Args: []string{"install", "vim"}},
+					Windows:        InstallCommand{Command: "winget", Args: []string{"install", "-e", "--id", "Vim.Vim"}},
+					Linux: map[system.PackageManager]InstallCommand{
+						system.Apt:    {Command: "apt-get", Args: []string{"install", "-y", "vim"}},
+						system.Dnf:    {Command: "dnf", Args: []string{"install", "-y", "vim"}},
+						system.Pacman: {Command: "pacman", Args: []string{"-S", "--noconfirm", "vim"}},
+						system.Zypper: {Command: "zypper", Args: []string{"install", "-y", "vim"}},
+						system.Apk:    {Command: "apk", Args: []string{"add", "vim"}},
+					},
+				},
+				{
 					ID:             "neovim",
 					Name:           "Neovim",
 					DescriptionKey: "item.neovim.description",
