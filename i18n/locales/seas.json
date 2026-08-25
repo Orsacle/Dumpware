@@ -26,6 +26,7 @@
 
   "category.ides": "Quill & Parchment",
   "item.vscode.description": "Scribes yer code upon digital parchment",
+  "item.vim.description": "A wee sea-dog's editor",
   "item.neovim.description": "The old sea-dog's editor, sharp as a cutlass",
   "item.sublimetext.description": "A finer quill fer writin' code",
 
