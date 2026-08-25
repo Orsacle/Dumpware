@@ -12,7 +12,7 @@ func Profiles() []Profile {
 		},
 		{
 			NameKey: "profile.coding",
-			ItemIDs: []string{"python", "nodejs", "php", "mysql", "git", "docker"},
+			ItemIDs: []string{"python", "nodejs", "php", "mysql", "git", "docker", "vim"},
 		},
 		{
 			NameKey: "profile.terminal",

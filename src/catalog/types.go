@@ -1,6 +1,6 @@
 package catalog
 
-import "gitlab.com/Orsacle/Dumpware/src/system"
+import "github.com/Orsacle/Dumpware/src/system"
 
 type InstallCommand struct {
 	Command string

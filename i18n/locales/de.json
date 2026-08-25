@@ -26,6 +26,7 @@
 
   "category.ides": "IDEs & Editoren",
   "item.vscode.description": "Code-Editor",
+  "item.vim.description": "Leichter Texteditor",
   "item.neovim.description": "Vim-basierter Texteditor",
   "item.sublimetext.description": "Texteditor",
 
