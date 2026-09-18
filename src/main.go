@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os"
 
-	"gitlab.com/Orsacle/Dumpware/i18n"
-	"gitlab.com/Orsacle/Dumpware/src/catalog"
-	"gitlab.com/Orsacle/Dumpware/src/installer"
-	"gitlab.com/Orsacle/Dumpware/src/system"
-	"gitlab.com/Orsacle/Dumpware/src/wizard"
+	"github.com/Orsacle/Dumpware/i18n"
+	"github.com/Orsacle/Dumpware/src/catalog"
+	"github.com/Orsacle/Dumpware/src/installer"
+	"github.com/Orsacle/Dumpware/src/system"
+	"github.com/Orsacle/Dumpware/src/wizard"
 )
 
 func main() {
